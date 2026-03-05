@@ -1,0 +1,64 @@
+services:
+  - type: web
+    name: linkup-api
+    runtime: node
+    rootDir: apps/server
+    plan: free
+    autoDeploy: true
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGO_URI
+        sync: false
+      - key: CLIENT_ORIGIN
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: JWT_ACCESS_EXPIRES_IN
+        value: 15m
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 7d
+      - key: COOKIE_NAME
+        value: linkup_refresh
+      - key: COOKIE_SECURE
+        value: true
+      - key: STUN_URL
+        value: stun:stun.l.google.com:19302
+      - key: TURN_URL
+        sync: false
+      - key: TURN_USERNAME
+        sync: false
+      - key: TURN_CREDENTIAL
+        sync: false
+
+  - type: static
+    name: linkup-client
+    rootDir: apps/client
+    plan: free
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    pullRequestPreviewsEnabled: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        sync: false
+      - key: VITE_SOCKET_URL
+        sync: false
+      - key: VITE_STUN_URL
+        value: stun:stun.l.google.com:19302
+      - key: VITE_TURN_URL
+        sync: false
+      - key: VITE_TURN_USERNAME
+        sync: false
+      - key: VITE_TURN_CREDENTIAL
+        sync: false
