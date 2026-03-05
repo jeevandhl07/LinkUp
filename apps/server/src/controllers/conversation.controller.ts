@@ -3,6 +3,9 @@ import { StatusCodes } from "http-status-codes";
 import { AuthRequest } from "../types/auth";
 import { conversationService } from "../services/conversation.service";
 
+const getParam = (value: string | string[] | undefined): string =>
+  Array.isArray(value) ? value[0] : (value ?? "");
+
 export const createDirect = async (req: AuthRequest, res: Response) => {
   const conversation = await conversationService.createOrGetDirect(
     req.user!.userId,
@@ -29,7 +32,7 @@ export const listConversations = async (req: AuthRequest, res: Response) => {
 export const getConversation = async (req: AuthRequest, res: Response) => {
   const conversation = await conversationService.getConversation(
     req.user!.userId,
-    req.params.id,
+    getParam(req.params.id),
   );
   res.status(StatusCodes.OK).json({ conversation });
 };
@@ -37,7 +40,7 @@ export const getConversation = async (req: AuthRequest, res: Response) => {
 export const updateConversation = async (req: AuthRequest, res: Response) => {
   const conversation = await conversationService.updateConversation(
     req.user!.userId,
-    req.params.id,
+    getParam(req.params.id),
     req.body,
   );
   res.status(StatusCodes.OK).json({ conversation });
@@ -46,7 +49,7 @@ export const updateConversation = async (req: AuthRequest, res: Response) => {
 export const addMembers = async (req: AuthRequest, res: Response) => {
   const conversation = await conversationService.addMembers(
     req.user!.userId,
-    req.params.id,
+    getParam(req.params.id),
     req.body.memberIds,
   );
   res.status(StatusCodes.OK).json({ conversation });
@@ -55,8 +58,8 @@ export const addMembers = async (req: AuthRequest, res: Response) => {
 export const removeMember = async (req: AuthRequest, res: Response) => {
   const conversation = await conversationService.removeMember(
     req.user!.userId,
-    req.params.id,
-    req.params.userId,
+    getParam(req.params.id),
+    getParam(req.params.userId),
   );
   res.status(StatusCodes.OK).json({ conversation });
 };
@@ -64,7 +67,7 @@ export const removeMember = async (req: AuthRequest, res: Response) => {
 export const leaveConversation = async (req: AuthRequest, res: Response) => {
   const result = await conversationService.leaveConversation(
     req.user!.userId,
-    req.params.id,
+    getParam(req.params.id),
   );
   res.status(StatusCodes.OK).json(result);
 };
@@ -72,7 +75,7 @@ export const leaveConversation = async (req: AuthRequest, res: Response) => {
 export const readConversation = async (req: AuthRequest, res: Response) => {
   const conversation = await conversationService.updateRead(
     req.user!.userId,
-    req.params.id,
+    getParam(req.params.id),
     req.body.lastReadMessageId,
   );
   res.status(StatusCodes.OK).json({ conversation });
