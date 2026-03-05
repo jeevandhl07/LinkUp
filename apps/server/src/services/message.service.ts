@@ -70,13 +70,12 @@ export const messageService = {
 
     await assertMembership(message.conversationId.toString(), userId);
 
-    const existing = message.reactions.find(
+    const existingIndex = message.reactions.findIndex(
       (r) => r.userId.toString() === userId && r.emoji === emoji,
     );
-    if (existing) {
-      message.reactions = message.reactions.filter(
-        (r) => !(r.userId.toString() === userId && r.emoji === emoji),
-      );
+
+    if (existingIndex >= 0) {
+      message.reactions.splice(existingIndex, 1);
     } else {
       message.reactions.push({
         emoji,

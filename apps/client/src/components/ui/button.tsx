@@ -1,12 +1,14 @@
-﻿import { ButtonHTMLAttributes } from "react";
+import { ButtonHTMLAttributes } from "react";
 import { cn } from "../../lib/cn";
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "default" | "ghost" | "outline";
 };
 
+type Variant = NonNullable<Props["variant"]>;
+
 export const Button = ({ className, variant = "default", ...props }: Props) => {
-  const styles: Record<Props["variant"], string> = {
+  const styles: Record<Variant, string> = {
     default: "bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:opacity-90",
     ghost: "bg-transparent hover:bg-border/60",
     outline: "border border-border hover:bg-border/30"

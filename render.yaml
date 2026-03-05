@@ -5,12 +5,10 @@ services:
     rootDir: .
     plan: free
     autoDeploy: true
-    buildCommand: npm install && npm run build -w @linkup/server
-    startCommand: npm run start -w @linkup/server
+    buildCommand: npm install --include=dev && npm run build -w @linkup/server
+    startCommand: NODE_ENV=production npm run start -w @linkup/server
     healthCheckPath: /health
     envVars:
-      - key: NODE_ENV
-        value: production
       - key: PORT
         value: 10000
       - key: MONGO_URI
@@ -42,7 +40,7 @@ services:
     name: linkup-client
     runtime: static
     rootDir: .
-    buildCommand: npm install && npm run build -w @linkup/client
+    buildCommand: npm install --include=dev && npm run build -w @linkup/client
     staticPublishPath: apps/client/dist
     pullRequestPreviewsEnabled: false
     routes:
