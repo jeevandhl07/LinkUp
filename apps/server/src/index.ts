@@ -16,13 +16,17 @@ import callRoutes from "./routes/call.routes";
 import { errorHandler, notFound } from "./middleware/error";
 import { setupSocket } from "./socket";
 
-const configuredOrigins = env.CLIENT_ORIGIN.split(",").map((origin) => origin.trim()).filter(Boolean);
-const localNetworkOriginPattern = /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3})(:\d+)?$/;
+const configuredOrigins = env.CLIENT_ORIGIN.split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const localNetworkOriginPattern =
+  /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3})(:\d+)?$/;
 
 const isAllowedOrigin = (origin?: string): boolean => {
   if (!origin) return true;
   if (configuredOrigins.includes(origin)) return true;
-  if (env.NODE_ENV !== "production" && localNetworkOriginPattern.test(origin)) return true;
+  if (env.NODE_ENV !== "production" && localNetworkOriginPattern.test(origin))
+    return true;
   return false;
 };
 
@@ -40,8 +44,8 @@ const bootstrap = async () => {
         }
         callback(new Error("CORS origin not allowed"));
       },
-      credentials: true
-    })
+      credentials: true,
+    }),
   );
   app.use(express.json({ limit: "1mb" }));
   app.use(cookieParser());
@@ -50,7 +54,7 @@ const bootstrap = async () => {
     windowMs: 10 * 60 * 1000,
     max: 50,
     standardHeaders: true,
-    legacyHeaders: false
+    legacyHeaders: false,
   });
 
   app.get("/health", (_req, res) => res.json({ ok: true }));
@@ -73,8 +77,8 @@ const bootstrap = async () => {
         }
         callback(new Error("Socket origin not allowed"));
       },
-      credentials: true
-    }
+      credentials: true,
+    },
   });
 
   setupSocket(io);

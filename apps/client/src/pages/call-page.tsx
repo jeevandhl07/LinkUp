@@ -18,7 +18,7 @@ const buildIceServers = (): RTCIceServer[] => {
     servers.push({
       urls: [turnUrl],
       username: turnUser,
-      credential: turnCredential
+      credential: turnCredential,
     });
   }
   return servers;
@@ -32,17 +32,25 @@ export const CallPage = () => {
   const callQuery = useQuery({
     queryKey: ["call", callId],
     queryFn: () => callsApi.get(callId),
-    enabled: Boolean(callId)
+    enabled: Boolean(callId),
   });
 
   const iceServers = useMemo(() => buildIceServers(), []);
 
   if (callQuery.isLoading) {
-    return <div className="flex h-screen items-center justify-center bg-bg text-text">Loading call...</div>;
+    return (
+      <div className="flex h-screen items-center justify-center bg-bg text-text">
+        Loading call...
+      </div>
+    );
   }
 
   if (!callQuery.data?.call) {
-    return <div className="flex h-screen items-center justify-center bg-bg text-text">Call not found</div>;
+    return (
+      <div className="flex h-screen items-center justify-center bg-bg text-text">
+        Call not found
+      </div>
+    );
   }
 
   return (
@@ -60,7 +68,9 @@ export const CallPage = () => {
         </Button>
         <div className="pr-2">
           <p className="text-xs font-semibold">Call</p>
-          <p className="text-[10px] text-muted">{callQuery.data.call.participants.length} participants</p>
+          <p className="text-[10px] text-muted">
+            {callQuery.data.call.participants.length} participants
+          </p>
         </div>
       </div>
 

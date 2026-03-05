@@ -3,11 +3,14 @@ import { UserModel } from "../models/User";
 import { AppError } from "../utils/AppError";
 
 export const userService = {
-  async updateMe(userId: string, updates: { name?: string; avatarUrl?: string; bio?: string }) {
+  async updateMe(
+    userId: string,
+    updates: { name?: string; avatarUrl?: string; bio?: string },
+  ) {
     const user = await UserModel.findByIdAndUpdate(
       userId,
       { $set: updates },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     ).select("-passwordHash");
 
     if (!user) {
@@ -24,15 +27,15 @@ export const userService = {
     const filter = hasQuery
       ? {
           _id: { $ne: userId },
-          $or: [{ email: regex }, { name: regex }]
+          $or: [{ email: regex }, { name: regex }],
         }
       : {
-          _id: { $ne: userId }
+          _id: { $ne: userId },
         };
 
     return UserModel.find(filter)
       .select("_id name email avatarUrl bio")
       .limit(50)
       .lean();
-  }
+  },
 };

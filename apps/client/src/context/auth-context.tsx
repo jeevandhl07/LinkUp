@@ -1,4 +1,11 @@
-import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { authApi } from "../api/endpoints";
 import { setAccessToken } from "../api/http";
 import { User } from "../types/models";
@@ -8,7 +15,11 @@ type AuthContextValue = {
   token: string | null;
   loading: boolean;
   login: (payload: { email: string; password: string }) => Promise<void>;
-  register: (payload: { email: string; name: string; password: string }) => Promise<void>;
+  register: (payload: {
+    email: string;
+    name: string;
+    password: string;
+  }) => Promise<void>;
   logout: () => Promise<void>;
 };
 
@@ -16,7 +27,9 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem("linkup_access_token"));
+  const [token, setToken] = useState<string | null>(
+    localStorage.getItem("linkup_access_token"),
+  );
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -61,9 +74,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setAccessToken(null);
         setToken(null);
         setUser(null);
-      }
+      },
     }),
-    [loading, token, user]
+    [loading, token, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -2,7 +2,10 @@ import { Router } from "express";
 import { searchUsers, updateMe } from "../controllers/user.controller";
 import { authMiddleware } from "../middleware/auth";
 import { validate } from "../middleware/validate";
-import { searchUsersSchema, updateMeSchema } from "../validation/user.validation";
+import {
+  searchUsersSchema,
+  updateMeSchema,
+} from "../validation/user.validation";
 import { asyncHandler } from "../utils/asyncHandler";
 
 const router = Router();

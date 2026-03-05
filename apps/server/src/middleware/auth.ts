@@ -4,7 +4,11 @@ import { AuthRequest } from "../types/auth";
 import { AppError } from "../utils/AppError";
 import { verifyAccessToken } from "../utils/jwt";
 
-export const authMiddleware = (req: AuthRequest, _res: Response, next: NextFunction): void => {
+export const authMiddleware = (
+  req: AuthRequest,
+  _res: Response,
+  next: NextFunction,
+): void => {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith("Bearer ")) {
     return next(new AppError("Unauthorized", StatusCodes.UNAUTHORIZED));

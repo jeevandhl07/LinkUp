@@ -2,7 +2,11 @@ import { Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { env } from "../config/env";
 import { AuthRequest } from "../types/auth";
-import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../utils/jwt";
+import {
+  signAccessToken,
+  signRefreshToken,
+  verifyRefreshToken,
+} from "../utils/jwt";
 import { authService } from "../services/auth.service";
 import { AppError } from "../utils/AppError";
 
@@ -10,7 +14,7 @@ const refreshCookieOptions = {
   httpOnly: true,
   sameSite: "lax" as const,
   secure: env.COOKIE_SECURE,
-  path: "/api/v1/auth"
+  path: "/api/v1/auth",
 };
 
 export const register = async (req: AuthRequest, res: Response) => {
@@ -26,8 +30,8 @@ export const register = async (req: AuthRequest, res: Response) => {
       email: user.email,
       name: user.name,
       avatarUrl: user.avatarUrl,
-      bio: user.bio
-    }
+      bio: user.bio,
+    },
   });
 };
 
@@ -44,8 +48,8 @@ export const login = async (req: AuthRequest, res: Response) => {
       email: user.email,
       name: user.name,
       avatarUrl: user.avatarUrl,
-      bio: user.bio
-    }
+      bio: user.bio,
+    },
   });
 };
 
@@ -79,7 +83,7 @@ export const me = async (req: AuthRequest, res: Response) => {
       email: user.email,
       name: user.name,
       avatarUrl: user.avatarUrl,
-      bio: user.bio
-    }
+      bio: user.bio,
+    },
   });
 };

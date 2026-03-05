@@ -5,7 +5,9 @@ import { callService } from "../services/call.service";
 
 export const createCall = async (req: AuthRequest, res: Response) => {
   const call = await callService.createCall(req.user!.userId, req.body);
-  res.status(StatusCodes.CREATED).json({ callId: call._id, participants: call.participants, call });
+  res
+    .status(StatusCodes.CREATED)
+    .json({ callId: call._id, participants: call.participants, call });
 };
 
 export const getCall = async (req: AuthRequest, res: Response) => {

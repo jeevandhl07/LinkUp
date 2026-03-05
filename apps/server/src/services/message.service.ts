@@ -9,7 +9,9 @@ const assertMembership = async (conversationId: string, userId: string) => {
   if (!conversation) {
     throw new AppError("Conversation not found", StatusCodes.NOT_FOUND);
   }
-  const member = conversation.members.some((m) => m.userId.toString() === userId);
+  const member = conversation.members.some(
+    (m) => m.userId.toString() === userId,
+  );
   if (!member) {
     throw new AppError("Forbidden", StatusCodes.FORBIDDEN);
   }
@@ -17,10 +19,17 @@ const assertMembership = async (conversationId: string, userId: string) => {
 };
 
 export const messageService = {
-  async listMessages(userId: string, conversationId: string, cursor?: string, limit = 20) {
+  async listMessages(
+    userId: string,
+    conversationId: string,
+    cursor?: string,
+    limit = 20,
+  ) {
     await assertMembership(conversationId, userId);
 
-    const filter: Record<string, unknown> = { conversationId: new mongoose.Types.ObjectId(conversationId) };
+    const filter: Record<string, unknown> = {
+      conversationId: new mongoose.Types.ObjectId(conversationId),
+    };
     if (cursor) {
       filter._id = { $lt: new mongoose.Types.ObjectId(cursor) };
     }
@@ -35,7 +44,7 @@ export const messageService = {
 
     return {
       items: sliced.reverse(),
-      nextCursor: hasMore ? sliced[sliced.length - 1]._id.toString() : null
+      nextCursor: hasMore ? sliced[sliced.length - 1]._id.toString() : null,
     };
   },
 
@@ -44,10 +53,12 @@ export const messageService = {
     const message = await MessageModel.create({
       conversationId,
       senderId: userId,
-      content
+      content,
     });
 
-    await ConversationModel.findByIdAndUpdate(conversationId, { $set: { updatedAt: new Date() } });
+    await ConversationModel.findByIdAndUpdate(conversationId, {
+      $set: { updatedAt: new Date() },
+    });
     return message;
   },
 
@@ -59,14 +70,21 @@ export const messageService = {
 
     await assertMembership(message.conversationId.toString(), userId);
 
-    const existing = message.reactions.find((r) => r.userId.toString() === userId && r.emoji === emoji);
+    const existing = message.reactions.find(
+      (r) => r.userId.toString() === userId && r.emoji === emoji,
+    );
     if (existing) {
-      message.reactions = message.reactions.filter((r) => !(r.userId.toString() === userId && r.emoji === emoji));
+      message.reactions = message.reactions.filter(
+        (r) => !(r.userId.toString() === userId && r.emoji === emoji),
+      );
     } else {
-      message.reactions.push({ emoji, userId: new mongoose.Types.ObjectId(userId) });
+      message.reactions.push({
+        emoji,
+        userId: new mongoose.Types.ObjectId(userId),
+      });
     }
 
     await message.save();
     return message;
-  }
+  },
 };

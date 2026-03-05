@@ -58,8 +58,20 @@ export const RegisterPage = () => {
         <LinkUpLogo className="mb-4" />
         <p className="mb-6 text-sm text-muted">Create your LinkUp account</p>
         <form className="space-y-3" onSubmit={onSubmit}>
-          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name" minLength={2} required />
-          <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" type="email" required />
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Name"
+            minLength={2}
+            required
+          />
+          <Input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            type="email"
+            required
+          />
 
           <div className="relative">
             <Input
@@ -77,15 +89,24 @@ export const RegisterPage = () => {
               className="absolute right-2 top-2 inline-flex h-6 w-6 items-center justify-center rounded text-muted hover:text-text"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
             </button>
           </div>
 
           {error ? <div className="text-sm text-red-500">{error}</div> : null}
-          <Button className="w-full" type="submit">Register</Button>
+          <Button className="w-full" type="submit">
+            Register
+          </Button>
         </form>
         <p className="mt-4 text-sm text-muted">
-          Have an account? <Link className="text-accent" to="/login">Sign in</Link>
+          Have an account?{" "}
+          <Link className="text-accent" to="/login">
+            Sign in
+          </Link>
         </p>
       </Card>
     </div>

@@ -8,17 +8,25 @@ export const listMessages = async (req: AuthRequest, res: Response) => {
     req.user!.userId,
     req.params.id,
     req.query.cursor as string | undefined,
-    Number(req.query.limit || 20)
+    Number(req.query.limit || 20),
   );
   res.status(StatusCodes.OK).json(data);
 };
 
 export const sendMessage = async (req: AuthRequest, res: Response) => {
-  const message = await messageService.sendMessage(req.user!.userId, req.params.id, req.body.content);
+  const message = await messageService.sendMessage(
+    req.user!.userId,
+    req.params.id,
+    req.body.content,
+  );
   res.status(StatusCodes.CREATED).json({ message });
 };
 
 export const reactMessage = async (req: AuthRequest, res: Response) => {
-  const message = await messageService.addReaction(req.user!.userId, req.params.messageId, req.body.emoji);
+  const message = await messageService.addReaction(
+    req.user!.userId,
+    req.params.messageId,
+    req.body.emoji,
+  );
   res.status(StatusCodes.OK).json({ message });
 };

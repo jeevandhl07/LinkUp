@@ -11,39 +11,57 @@ type Props = {
   iceServers: RTCIceServer[];
 };
 
-export const CallRoom = ({ callId, participantIds, onLeave, iceServers }: Props) => {
+export const CallRoom = ({
+  callId,
+  participantIds,
+  onLeave,
+  iceServers,
+}: Props) => {
   const { socket } = useSocket();
   const { user } = useAuth();
   const localVideoRef = useRef<HTMLVideoElement>(null);
-  const [remoteStreams, setRemoteStreams] = useState<Record<string, MediaStream>>({});
+  const [remoteStreams, setRemoteStreams] = useState<
+    Record<string, MediaStream>
+  >({});
   const [mediaError, setMediaError] = useState<string>("");
   const peersRef = useRef<Record<string, RTCPeerConnection>>({});
   const localStreamRef = useRef<MediaStream | null>(null);
   const [muted, setMuted] = useState(false);
   const [cameraOff, setCameraOff] = useState(false);
 
-  const others = useMemo(() => participantIds.filter((id) => id !== user?.id), [participantIds, user?.id]);
+  const others = useMemo(
+    () => participantIds.filter((id) => id !== user?.id),
+    [participantIds, user?.id],
+  );
 
   useEffect(() => {
     if (!socket || !user) return;
 
     const init = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true,
+        });
         localStreamRef.current = stream;
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = stream;
         }
 
         const ensurePeer = (targetUserId: string) => {
-          if (peersRef.current[targetUserId]) return peersRef.current[targetUserId];
+          if (peersRef.current[targetUserId])
+            return peersRef.current[targetUserId];
 
           const pc = new RTCPeerConnection({ iceServers });
           stream.getTracks().forEach((track) => pc.addTrack(track, stream));
 
           pc.onicecandidate = (event) => {
             if (event.candidate) {
-              socket.emit("webrtc:ice-candidate", { callId, toUserId: targetUserId, candidate: event.candidate });
+              socket.emit("webrtc:ice-candidate", {
+                callId,
+                toUserId: targetUserId,
+                candidate: event.candidate,
+              });
             }
           };
 
@@ -60,7 +78,11 @@ export const CallRoom = ({ callId, participantIds, onLeave, iceServers }: Props)
           const pc = ensurePeer(targetUserId);
           const offer = await pc.createOffer();
           await pc.setLocalDescription(offer);
-          socket.emit("webrtc:offer", { callId, toUserId: targetUserId, offer });
+          socket.emit("webrtc:offer", {
+            callId,
+            toUserId: targetUserId,
+            offer,
+          });
         }
 
         socket.emit("call:join", { callId });
@@ -70,7 +92,11 @@ export const CallRoom = ({ callId, participantIds, onLeave, iceServers }: Props)
           await pc.setRemoteDescription(new RTCSessionDescription(offer));
           const answer = await pc.createAnswer();
           await pc.setLocalDescription(answer);
-          socket.emit("webrtc:answer", { callId, toUserId: fromUserId, answer });
+          socket.emit("webrtc:answer", {
+            callId,
+            toUserId: fromUserId,
+            answer,
+          });
         });
 
         socket.on("webrtc:answer", async ({ fromUserId, answer }) => {
@@ -133,16 +159,29 @@ export const CallRoom = ({ callId, participantIds, onLeave, iceServers }: Props)
 
   return (
     <div className="flex h-full flex-col bg-bg">
-      {mediaError ? <div className="px-4 pt-14 text-sm text-red-300">{mediaError}</div> : null}
+      {mediaError ? (
+        <div className="px-4 pt-14 text-sm text-red-300">{mediaError}</div>
+      ) : null}
 
       <div className="grid flex-1 grid-cols-1 gap-2 p-2 pt-14 sm:grid-cols-2 lg:grid-cols-3">
         <div className="relative overflow-hidden rounded-xl border border-border bg-panel">
-          <video ref={localVideoRef} autoPlay muted playsInline className="h-full w-full object-cover" />
-          <span className="absolute bottom-2 left-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white">You</span>
+          <video
+            ref={localVideoRef}
+            autoPlay
+            muted
+            playsInline
+            className="h-full w-full object-cover"
+          />
+          <span className="absolute bottom-2 left-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white">
+            You
+          </span>
         </div>
 
         {Object.entries(remoteStreams).map(([id, stream]) => (
-          <div key={id} className="relative overflow-hidden rounded-xl border border-border bg-panel">
+          <div
+            key={id}
+            className="relative overflow-hidden rounded-xl border border-border bg-panel"
+          >
             <video
               autoPlay
               playsInline
@@ -151,7 +190,9 @@ export const CallRoom = ({ callId, participantIds, onLeave, iceServers }: Props)
               }}
               className="h-full w-full object-cover"
             />
-            <span className="absolute bottom-2 left-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white">{id.slice(0, 8)}</span>
+            <span className="absolute bottom-2 left-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white">
+              {id.slice(0, 8)}
+            </span>
           </div>
         ))}
       </div>

@@ -4,16 +4,27 @@ import { ConversationModel } from "../models/Conversation";
 import { AppError } from "../utils/AppError";
 
 export const callService = {
-  async createCall(userId: string, input: { type: "direct" | "group"; conversationId?: string; participantIds?: string[] }) {
+  async createCall(
+    userId: string,
+    input: {
+      type: "direct" | "group";
+      conversationId?: string;
+      participantIds?: string[];
+    },
+  ) {
     let participants: string[] = [];
 
     if (input.conversationId) {
-      const conversation = await ConversationModel.findById(input.conversationId);
+      const conversation = await ConversationModel.findById(
+        input.conversationId,
+      );
       if (!conversation) {
         throw new AppError("Conversation not found", StatusCodes.NOT_FOUND);
       }
 
-      const isMember = conversation.members.some((m) => m.userId.toString() === userId);
+      const isMember = conversation.members.some(
+        (m) => m.userId.toString() === userId,
+      );
       if (!isMember) {
         throw new AppError("Forbidden", StatusCodes.FORBIDDEN);
       }
@@ -24,7 +35,10 @@ export const callService = {
     }
 
     if (participants.length < 2) {
-      throw new AppError("Call requires at least 2 participants", StatusCodes.BAD_REQUEST);
+      throw new AppError(
+        "Call requires at least 2 participants",
+        StatusCodes.BAD_REQUEST,
+      );
     }
 
     const call = await CallSessionModel.create({
@@ -32,7 +46,7 @@ export const callService = {
       conversationId: input.conversationId ?? null,
       createdBy: userId,
       participants,
-      status: "active"
+      status: "active",
     });
 
     return call;
@@ -65,5 +79,5 @@ export const callService = {
     call.endedAt = new Date();
     await call.save();
     return call;
-  }
+  },
 };

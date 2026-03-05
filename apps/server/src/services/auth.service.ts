@@ -6,7 +6,9 @@ import { JwtPayload } from "../types/auth";
 
 export const authService = {
   async register(input: { email: string; name: string; password: string }) {
-    const existing = await UserModel.findOne({ email: input.email.toLowerCase() });
+    const existing = await UserModel.findOne({
+      email: input.email.toLowerCase(),
+    });
     if (existing) {
       throw new AppError("Email already registered", StatusCodes.CONFLICT);
     }
@@ -15,10 +17,13 @@ export const authService = {
     const user = await UserModel.create({
       email: input.email,
       name: input.name,
-      passwordHash
+      passwordHash,
     });
 
-    const payload: JwtPayload = { userId: user._id.toString(), email: user.email };
+    const payload: JwtPayload = {
+      userId: user._id.toString(),
+      email: user.email,
+    };
     return { user, payload };
   },
 
@@ -33,7 +38,10 @@ export const authService = {
       throw new AppError("Invalid credentials", StatusCodes.UNAUTHORIZED);
     }
 
-    const payload: JwtPayload = { userId: user._id.toString(), email: user.email };
+    const payload: JwtPayload = {
+      userId: user._id.toString(),
+      email: user.email,
+    };
     return { user, payload };
   },
 
@@ -43,5 +51,5 @@ export const authService = {
       throw new AppError("User not found", StatusCodes.NOT_FOUND);
     }
     return user;
-  }
+  },
 };

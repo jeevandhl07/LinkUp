@@ -27,11 +27,12 @@ export const AppPage = () => {
 
   const selectedConversation = useMemo(
     () => conversations.find((conversation) => conversation._id === selectedId),
-    [conversations, selectedId]
+    [conversations, selectedId],
   );
 
   const { query: messagesQuery } = useMessages(selectedId);
-  const messages = messagesQuery.data?.pages.flatMap((page) => page.items) ?? [];
+  const messages =
+    messagesQuery.data?.pages.flatMap((page) => page.items) ?? [];
   const hasMore = Boolean(messagesQuery.hasNextPage);
 
   useEffect(() => {
@@ -46,13 +47,20 @@ export const AppPage = () => {
     if (!socket) return;
 
     socket.on("message:new", ({ message }: { message: Message }) => {
-      queryClient.setQueryData<any>(["messages", message.conversationId], (prev: any) => {
-        if (!prev) return { pages: [{ items: [message], nextCursor: null }], pageParams: [undefined] };
-        const next = { ...prev };
-        const last = next.pages[next.pages.length - 1];
-        last.items = [...last.items, message];
-        return next;
-      });
+      queryClient.setQueryData<any>(
+        ["messages", message.conversationId],
+        (prev: any) => {
+          if (!prev)
+            return {
+              pages: [{ items: [message], nextCursor: null }],
+              pageParams: [undefined],
+            };
+          const next = { ...prev };
+          const last = next.pages[next.pages.length - 1];
+          last.items = [...last.items, message];
+          return next;
+        },
+      );
 
       queryClient.setQueryData<Conversation[]>(["conversations"], (prev = []) =>
         prev.map((conversation) => {
@@ -60,21 +68,28 @@ export const AppPage = () => {
 
           const isMine = message.senderId === user?.id;
           const isActiveConversation = selectedId === message.conversationId;
-          const unreadCount = isMine || isActiveConversation ? 0 : (conversation.unreadCount || 0) + 1;
+          const unreadCount =
+            isMine || isActiveConversation
+              ? 0
+              : (conversation.unreadCount || 0) + 1;
 
           return {
             ...conversation,
             lastMessage: message,
             unreadCount,
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date().toISOString(),
           };
-        })
+        }),
       );
     });
 
     socket.on("typing:update", ({ conversationId, userId, isTyping }) => {
       if (conversationId !== selectedId || userId === user?.id) return;
-      setTypingUsers((prev) => (isTyping ? [...new Set([...prev, userId])] : prev.filter((id) => id !== userId)));
+      setTypingUsers((prev) =>
+        isTyping
+          ? [...new Set([...prev, userId])]
+          : prev.filter((id) => id !== userId),
+      );
     });
 
     socket.on("call:incoming", ({ callId }) => {
@@ -90,15 +105,28 @@ export const AppPage = () => {
   }, [navigate, push, queryClient, selectedId, socket, user?.id]);
 
   useEffect(() => {
-    if (!socket || !selectedId || !selectedConversation || messages.length === 0) return;
+    if (
+      !socket ||
+      !selectedId ||
+      !selectedConversation ||
+      messages.length === 0
+    )
+      return;
     const lastReadMessageId = messages[messages.length - 1]._id;
-    socket.emit("read:update", { conversationId: selectedId, lastReadMessageId });
-    void conversationsApi.markRead(selectedId, lastReadMessageId).catch(() => undefined);
+    socket.emit("read:update", {
+      conversationId: selectedId,
+      lastReadMessageId,
+    });
+    void conversationsApi
+      .markRead(selectedId, lastReadMessageId)
+      .catch(() => undefined);
 
     queryClient.setQueryData<Conversation[]>(["conversations"], (prev = []) =>
       prev.map((conversation) =>
-        conversation._id === selectedId ? { ...conversation, unreadCount: 0 } : conversation
-      )
+        conversation._id === selectedId
+          ? { ...conversation, unreadCount: 0 }
+          : conversation,
+      ),
     );
   }, [messages, selectedConversation, selectedId, socket, queryClient]);
 
@@ -109,7 +137,9 @@ export const AppPage = () => {
 
   const handleTyping = (typing: boolean) => {
     if (!selectedId || !socket) return;
-    socket.emit(typing ? "typing:start" : "typing:stop", { conversationId: selectedId });
+    socket.emit(typing ? "typing:start" : "typing:stop", {
+      conversationId: selectedId,
+    });
   };
 
   const startCall = async () => {
@@ -120,13 +150,15 @@ export const AppPage = () => {
         : {
             type: "direct" as const,
             conversationId: selectedConversation._id,
-            participantIds: selectedConversation.members.map((member) => member.userId)
+            participantIds: selectedConversation.members.map(
+              (member) => member.userId,
+            ),
           };
 
     const data = await callsApi.create(payload);
     socket?.emit("call:invite", {
       callId: data.callId,
-      participantIds: data.participants.filter((id) => id !== user?.id)
+      participantIds: data.participants.filter((id) => id !== user?.id),
     });
     navigate(`/app/calls/${data.callId}`);
   };
@@ -142,7 +174,9 @@ export const AppPage = () => {
 
   return (
     <div className="flex h-screen overflow-hidden bg-bg">
-      <div className={`${mobileView === "list" ? "block" : "hidden"} h-full w-full md:block md:w-[360px]`}>
+      <div
+        className={`${mobileView === "list" ? "block" : "hidden"} h-full w-full md:block md:w-[360px]`}
+      >
         <Sidebar
           conversations={conversations}
           selectedId={selectedId}
@@ -151,7 +185,9 @@ export const AppPage = () => {
             setSelectedId(id);
             setMobileView("chat");
           }}
-          onSearchUsers={async (q) => (await usersApi.search(q)).users as User[]}
+          onSearchUsers={async (q) =>
+            (await usersApi.search(q)).users as User[]
+          }
           onCreateDirect={(userId) =>
             void createDirect.mutateAsync(userId).then((response) => {
               setSelectedId(response.conversation._id);
@@ -159,16 +195,20 @@ export const AppPage = () => {
             })
           }
           onCreateGroup={(title, memberIds) =>
-            void createGroup.mutateAsync({ title, memberIds }).then((response) => {
-              setSelectedId(response.conversation._id);
-              setMobileView("chat");
-            })
+            void createGroup
+              .mutateAsync({ title, memberIds })
+              .then((response) => {
+                setSelectedId(response.conversation._id);
+                setMobileView("chat");
+              })
           }
           onLogout={() => void logout()}
         />
       </div>
 
-      <div className={`${mobileView === "chat" ? "flex" : "hidden"} min-w-0 flex-1 md:flex`}>
+      <div
+        className={`${mobileView === "chat" ? "flex" : "hidden"} min-w-0 flex-1 md:flex`}
+      >
         {selectedConversation ? (
           <Thread
             conversation={selectedConversation}
@@ -186,7 +226,9 @@ export const AppPage = () => {
           <div className="flex h-full w-full items-center justify-center bg-bg text-center text-muted">
             <div>
               <p className="text-base font-medium">Select a conversation</p>
-              <p className="mt-1 text-sm">Choose a chat from the left sidebar to start messaging</p>
+              <p className="mt-1 text-sm">
+                Choose a chat from the left sidebar to start messaging
+              </p>
             </div>
           </div>
         )}

@@ -24,7 +24,12 @@ body {
   @apply bg-bg text-text antialiased;
   margin: 0;
   font-family: "Segoe UI", "Inter", sans-serif;
-  background-image: radial-gradient(circle at 12% 14%, rgb(var(--accent) / 0.14), transparent 44%),
+  background-image:
+    radial-gradient(
+      circle at 12% 14%,
+      rgb(var(--accent) / 0.14),
+      transparent 44%
+    ),
     radial-gradient(circle at 88% 84%, rgb(31 95 203 / 0.16), transparent 42%);
   background-attachment: fixed;
 }

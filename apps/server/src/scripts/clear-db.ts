@@ -13,7 +13,7 @@ const clearDatabase = async () => {
     UserModel.deleteMany({}),
     ConversationModel.deleteMany({}),
     MessageModel.deleteMany({}),
-    CallSessionModel.deleteMany({})
+    CallSessionModel.deleteMany({}),
   ]);
 
   console.log("Database cleared successfully.");

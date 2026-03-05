@@ -11,20 +11,23 @@ export const updateMe = async (req: AuthRequest, res: Response) => {
       email: user.email,
       name: user.name,
       avatarUrl: user.avatarUrl,
-      bio: user.bio
-    }
+      bio: user.bio,
+    },
   });
 };
 
 export const searchUsers = async (req: AuthRequest, res: Response) => {
-  const users = await userService.searchUsers(req.user!.userId, String(req.query.q || ""));
+  const users = await userService.searchUsers(
+    req.user!.userId,
+    String(req.query.q || ""),
+  );
   res.status(StatusCodes.OK).json({
     users: users.map((user: any) => ({
       id: user._id,
       email: user.email,
       name: user.name,
       avatarUrl: user.avatarUrl,
-      bio: user.bio
-    }))
+      bio: user.bio,
+    })),
   });
 };
