@@ -38,10 +38,10 @@ services:
       - key: TURN_CREDENTIAL
         sync: false
 
-  - type: static
+  - type: web
     name: linkup-client
+    runtime: static
     rootDir: apps/client
-    plan: free
     buildCommand: npm install && npm run build
     staticPublishPath: dist
     pullRequestPreviewsEnabled: false
