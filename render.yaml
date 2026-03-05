@@ -2,11 +2,11 @@ services:
   - type: web
     name: linkup-api
     runtime: node
-    rootDir: apps/server
+    rootDir: .
     plan: free
     autoDeploy: true
-    buildCommand: npm install && npm run build
-    startCommand: npm run start
+    buildCommand: npm install && npm run build -w @linkup/server
+    startCommand: npm run start -w @linkup/server
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
@@ -41,9 +41,9 @@ services:
   - type: web
     name: linkup-client
     runtime: static
-    rootDir: apps/client
-    buildCommand: npm install && npm run build
-    staticPublishPath: dist
+    rootDir: .
+    buildCommand: npm install && npm run build -w @linkup/client
+    staticPublishPath: apps/client/dist
     pullRequestPreviewsEnabled: false
     routes:
       - type: rewrite
