@@ -1,0 +1,17 @@
+{
+  "name": "linkup",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "apps/server",
+    "apps/client"
+  ],
+  "scripts": {
+    "dev": "concurrently -k \"npm run dev -w @linkup/server\" \"npm run dev -w @linkup/client\"",
+    "build": "npm run build -w @linkup/server && npm run build -w @linkup/client",
+    "db:clear": "npm run db:clear -w @linkup/server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
