@@ -1,10 +1,12 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { callsApi } from "../api/endpoints";
 import { CallRoom } from "../components/calls/call-room";
 import { Button } from "../components/ui/button";
+import { useToast } from "../components/ui/toast";
+import { useAuth } from "../context/auth-context";
 import { useSocket } from "../context/socket-context";
 
 const buildIceServers = (): RTCIceServer[] => {
@@ -27,6 +29,8 @@ const buildIceServers = (): RTCIceServer[] => {
 export const CallPage = () => {
   const { callId = "" } = useParams();
   const { socket } = useSocket();
+  const { user } = useAuth();
+  const { push } = useToast();
   const navigate = useNavigate();
 
   const callQuery = useQuery({
@@ -34,6 +38,30 @@ export const CallPage = () => {
     queryFn: () => callsApi.get(callId),
     enabled: Boolean(callId),
   });
+
+  useEffect(() => {
+    if (!socket || !callId) return;
+
+    const handleCanceled = ({ callId: eventCallId, userId: actorId }: { callId: string; userId: string }) => {
+      if (eventCallId !== callId || actorId === user?.id) return;
+      push("Call canceled");
+      navigate("/app");
+    };
+
+    const handleDecline = ({ callId: eventCallId, userId: actorId }: { callId: string; userId: string }) => {
+      if (eventCallId !== callId || actorId === user?.id) return;
+      push("Call declined");
+      navigate("/app");
+    };
+
+    socket.on("call:canceled", handleCanceled);
+    socket.on("call:decline", handleDecline);
+
+    return () => {
+      socket.off("call:canceled", handleCanceled);
+      socket.off("call:decline", handleDecline);
+    };
+  }, [callId, navigate, push, socket, user?.id]);
 
   const iceServers = useMemo(() => buildIceServers(), []);
 
@@ -60,7 +88,7 @@ export const CallPage = () => {
           variant="ghost"
           className="h-8 w-8 p-0"
           onClick={() => {
-            socket?.emit("call:leave", { callId });
+            socket?.emit("call:cancel", { callId });
             navigate("/app");
           }}
         >
@@ -79,7 +107,7 @@ export const CallPage = () => {
         participantIds={callQuery.data.call.participants}
         iceServers={iceServers}
         onLeave={() => {
-          socket?.emit("call:leave", { callId });
+          socket?.emit("call:cancel", { callId });
           navigate("/app");
         }}
       />

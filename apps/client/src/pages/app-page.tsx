@@ -97,10 +97,22 @@ export const AppPage = () => {
       navigate(`/app/calls/${callId}`);
     });
 
+    socket.on("call:canceled", ({ userId: actorId }) => {
+      if (actorId === user?.id) return;
+      push("Call canceled");
+    });
+
+    socket.on("call:decline", ({ userId: actorId }) => {
+      if (actorId === user?.id) return;
+      push("Call declined");
+    });
+
     return () => {
       socket.off("message:new");
       socket.off("typing:update");
       socket.off("call:incoming");
+      socket.off("call:canceled");
+      socket.off("call:decline");
     };
   }, [navigate, push, queryClient, selectedId, socket, user?.id]);
 
@@ -236,3 +248,4 @@ export const AppPage = () => {
     </div>
   );
 };
+

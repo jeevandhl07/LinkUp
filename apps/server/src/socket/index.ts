@@ -128,6 +128,22 @@ export const setupSocket = (io: Server): void => {
       io.to(room.user(toUserId)).emit("call:decline", { callId, userId });
     });
 
+    safeOn("call:cancel", async ({ callId }) => {
+      const call = await callService.getCall(userId, callId);
+      const participantIds = call.participants.map((participant) =>
+        participant.toString(),
+      );
+
+      participantIds.forEach((participantId) => {
+        io.to(room.user(participantId)).emit("call:canceled", {
+          callId,
+          userId,
+        });
+      });
+
+      io.to(room.call(callId)).emit("call:ended", { callId, userId });
+    });
+
     safeOn("call:join", async ({ callId }) => {
       const call = await callService.getCall(userId, callId);
       socket.join(room.call(callId));

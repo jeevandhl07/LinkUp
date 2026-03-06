@@ -79,6 +79,10 @@ export const CallRoom = ({
     () => participantIds.filter((id) => id !== user?.id),
     [participantIds, user?.id],
   );
+  const totalTiles = 1 + Object.keys(remoteStreams).length;
+  const gridClass = totalTiles <= 2
+    ? "grid-cols-2"
+    : "grid-cols-2 sm:grid-cols-3";
 
   useEffect(() => {
     if (!socket || !user) return;
@@ -236,8 +240,8 @@ export const CallRoom = ({
         </div>
       ) : null}
 
-      <div className="grid flex-1 grid-cols-1 gap-2 p-2 pt-14 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="relative overflow-hidden rounded-xl border border-border bg-panel">
+      <div className={`grid flex-1 ${gridClass} gap-2 p-2 pt-14`}> 
+        <div className="relative aspect-video overflow-hidden rounded-xl border border-border bg-panel">
           <video
             ref={localVideoRef}
             autoPlay
@@ -253,7 +257,7 @@ export const CallRoom = ({
         {Object.entries(remoteStreams).map(([id, stream]) => (
           <div
             key={id}
-            className="relative overflow-hidden rounded-xl border border-border bg-panel"
+            className="relative aspect-video overflow-hidden rounded-xl border border-border bg-panel"
           >
             <video
               autoPlay
@@ -288,3 +292,4 @@ export const CallRoom = ({
     </div>
   );
 };
+
