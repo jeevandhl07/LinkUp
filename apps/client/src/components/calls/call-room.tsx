@@ -66,6 +66,7 @@ export const CallRoom = ({
   const [remoteStreams, setRemoteStreams] = useState<
     Record<string, MediaStream>
   >({});
+  const [remoteCameraOff, setRemoteCameraOff] = useState<Record<string, boolean>>({});
   const [mediaError, setMediaError] = useState<string>("");
   const [retryKey, setRetryKey] = useState(0);
   const peersRef = useRef<Record<string, RTCPeerConnection>>({});
@@ -79,10 +80,9 @@ export const CallRoom = ({
     () => participantIds.filter((id) => id !== user?.id),
     [participantIds, user?.id],
   );
-  const totalTiles = 1 + Object.keys(remoteStreams).length;
-  const gridClass = totalTiles <= 2
-    ? "grid-cols-2"
-    : "grid-cols-2 sm:grid-cols-3";
+
+  const isDirectPair = participantIds.length === 2;
+  const directPeerId = isDirectPair ? others[0] : undefined;
 
   useEffect(() => {
     if (!socket || !user) return;
@@ -101,10 +101,12 @@ export const CallRoom = ({
 
         const audioTracks = stream.getAudioTracks();
         const videoTracks = stream.getVideoTracks();
+        const initialCameraOff = videoTracks.length === 0;
+
         setHasAudioTrack(audioTracks.length > 0);
         setHasVideoTrack(videoTracks.length > 0);
         setMuted(audioTracks.length === 0);
-        setCameraOff(videoTracks.length === 0);
+        setCameraOff(initialCameraOff);
 
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = stream;
@@ -150,6 +152,7 @@ export const CallRoom = ({
         }
 
         socket.emit("call:join", { callId });
+        socket.emit("call:camera", { callId, cameraOff: initialCameraOff });
 
         socket.on("webrtc:offer", async ({ fromUserId, offer }) => {
           const pc = ensurePeer(fromUserId);
@@ -175,11 +178,21 @@ export const CallRoom = ({
           await pc.addIceCandidate(new RTCIceCandidate(candidate));
         });
 
+        socket.on("call:camera", ({ userId: actorId, cameraOff: actorCameraOff }) => {
+          if (actorId === user.id) return;
+          setRemoteCameraOff((prev) => ({ ...prev, [actorId]: Boolean(actorCameraOff) }));
+        });
+
         socket.on("call:leave", ({ userId: leftUserId }) => {
           const pc = peersRef.current[leftUserId];
           pc?.close();
           delete peersRef.current[leftUserId];
           setRemoteStreams((prev) => {
+            const next = { ...prev };
+            delete next[leftUserId];
+            return next;
+          });
+          setRemoteCameraOff((prev) => {
             const next = { ...prev };
             delete next[leftUserId];
             return next;
@@ -197,11 +210,13 @@ export const CallRoom = ({
       socket.off("webrtc:offer");
       socket.off("webrtc:answer");
       socket.off("webrtc:ice-candidate");
+      socket.off("call:camera");
       socket.off("call:leave");
       localStreamRef.current?.getTracks().forEach((track) => track.stop());
       Object.values(peersRef.current).forEach((pc) => pc.close());
       peersRef.current = {};
       setRemoteStreams({});
+      setRemoteCameraOff({});
     };
   }, [callId, iceServers, others, retryKey, socket, user]);
 
@@ -223,6 +238,7 @@ export const CallRoom = ({
     localStreamRef.current?.getVideoTracks().forEach((track) => {
       track.enabled = !next;
     });
+    socket?.emit("call:camera", { callId, cameraOff: next });
   };
 
   return (
@@ -240,41 +256,86 @@ export const CallRoom = ({
         </div>
       ) : null}
 
-      <div className={`grid flex-1 ${gridClass} gap-2 p-2 pt-14`}> 
-        <div className="relative aspect-video overflow-hidden rounded-xl border border-border bg-panel">
-          <video
-            ref={localVideoRef}
-            autoPlay
-            muted
-            playsInline
-            className="h-full w-full object-cover"
-          />
-          <span className="absolute bottom-2 left-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white">
-            You
-          </span>
-        </div>
-
-        {Object.entries(remoteStreams).map(([id, stream]) => (
-          <div
-            key={id}
-            className="relative aspect-video overflow-hidden rounded-xl border border-border bg-panel"
-          >
+      {isDirectPair ? (
+        <div className="grid flex-1 min-h-0 grid-rows-2 gap-2 p-2 pt-4 md:grid-cols-2 md:grid-rows-1 md:pt-2">
+          <div className="relative h-full min-h-0 overflow-hidden rounded-xl border border-border bg-panel">
             <video
+              ref={localVideoRef}
               autoPlay
+              muted
               playsInline
-              ref={(node) => {
-                if (!node) return;
-                node.srcObject = stream;
-                void node.play().catch(() => undefined);
-              }}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover [transform:scaleX(-1)]"
             />
             <span className="absolute bottom-2 left-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white">
-              {id.slice(0, 8)}
+              You
             </span>
           </div>
-        ))}
-      </div>
+
+          <div className="relative h-full min-h-0 overflow-hidden rounded-xl border border-border bg-panel">
+            {directPeerId && remoteStreams[directPeerId] && !remoteCameraOff[directPeerId] ? (
+              <video
+                autoPlay
+                playsInline
+                ref={(node) => {
+                  if (!node) return;
+                  node.srcObject = remoteStreams[directPeerId];
+                  void node.play().catch(() => undefined);
+                }}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-sm text-muted">
+                {directPeerId && remoteCameraOff[directPeerId] ? "Camera is off" : "Waiting for other user..."}
+              </div>
+            )}
+            <span className="absolute bottom-2 left-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white">
+              {directPeerId ? directPeerId.slice(0, 8) : "Peer"}
+            </span>
+          </div>
+        </div>
+      ) : (
+        <div className="grid flex-1 grid-cols-2 gap-2 p-2 pt-4 sm:grid-cols-3 md:pt-2">
+          <div className="relative aspect-video overflow-hidden rounded-xl border border-border bg-panel">
+            <video
+              ref={localVideoRef}
+              autoPlay
+              muted
+              playsInline
+              className="h-full w-full object-cover [transform:scaleX(-1)]"
+            />
+            <span className="absolute bottom-2 left-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white">
+              You
+            </span>
+          </div>
+
+          {Object.entries(remoteStreams).map(([id, stream]) => (
+            <div
+              key={id}
+              className="relative aspect-video overflow-hidden rounded-xl border border-border bg-panel"
+            >
+              {remoteCameraOff[id] ? (
+                <div className="flex h-full w-full items-center justify-center text-sm text-muted">
+                  Camera is off
+                </div>
+              ) : (
+                <video
+                  autoPlay
+                  playsInline
+                  ref={(node) => {
+                    if (!node) return;
+                    node.srcObject = stream;
+                    void node.play().catch(() => undefined);
+                  }}
+                  className="h-full w-full object-cover"
+                />
+              )}
+              <span className="absolute bottom-2 left-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white">
+                {id.slice(0, 8)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="sticky bottom-0 border-t border-border bg-panel/95 p-3 backdrop-blur">
         <div className="mx-auto flex max-w-sm items-center justify-center gap-3">
@@ -292,4 +353,3 @@ export const CallRoom = ({
     </div>
   );
 };
-

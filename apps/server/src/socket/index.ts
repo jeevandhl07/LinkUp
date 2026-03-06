@@ -141,7 +141,12 @@ export const setupSocket = (io: Server): void => {
         });
       });
 
+      io.to(room.call(callId)).emit("call:canceled", { callId, userId });
       io.to(room.call(callId)).emit("call:ended", { callId, userId });
+    });
+
+    safeOn("call:camera", ({ callId, cameraOff }) => {
+      io.to(room.call(callId)).emit("call:camera", { callId, userId, cameraOff });
     });
 
     safeOn("call:join", async ({ callId }) => {

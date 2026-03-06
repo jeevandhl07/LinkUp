@@ -1,10 +1,8 @@
 import { useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { callsApi } from "../api/endpoints";
 import { CallRoom } from "../components/calls/call-room";
-import { Button } from "../components/ui/button";
 import { useToast } from "../components/ui/toast";
 import { useAuth } from "../context/auth-context";
 import { useSocket } from "../context/socket-context";
@@ -39,6 +37,8 @@ export const CallPage = () => {
     enabled: Boolean(callId),
   });
 
+  const isDirect = (callQuery.data?.call.participants.length ?? 0) <= 2;
+
   useEffect(() => {
     if (!socket || !callId) return;
 
@@ -54,14 +54,30 @@ export const CallPage = () => {
       navigate("/app");
     };
 
+    const handleEnded = ({ callId: eventCallId, userId: actorId }: { callId: string; userId: string }) => {
+      if (eventCallId !== callId || actorId === user?.id) return;
+      push("Call ended");
+      navigate("/app");
+    };
+
+    const handleLeave = ({ callId: eventCallId, userId: actorId }: { callId: string; userId: string }) => {
+      if (!isDirect || eventCallId !== callId || actorId === user?.id) return;
+      push("Call ended");
+      navigate("/app");
+    };
+
     socket.on("call:canceled", handleCanceled);
     socket.on("call:decline", handleDecline);
+    socket.on("call:ended", handleEnded);
+    socket.on("call:leave", handleLeave);
 
     return () => {
       socket.off("call:canceled", handleCanceled);
       socket.off("call:decline", handleDecline);
+      socket.off("call:ended", handleEnded);
+      socket.off("call:leave", handleLeave);
     };
-  }, [callId, navigate, push, socket, user?.id]);
+  }, [callId, isDirect, navigate, push, socket, user?.id]);
 
   const iceServers = useMemo(() => buildIceServers(), []);
 
@@ -82,32 +98,14 @@ export const CallPage = () => {
   }
 
   return (
-    <div className="relative h-screen bg-bg text-text">
-      <div className="absolute left-3 top-3 z-20 flex items-center gap-2 rounded-full border border-border bg-panel/90 px-2 py-1 backdrop-blur">
-        <Button
-          variant="ghost"
-          className="h-8 w-8 p-0"
-          onClick={() => {
-            socket?.emit("call:cancel", { callId });
-            navigate("/app");
-          }}
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div className="pr-2">
-          <p className="text-xs font-semibold">Call</p>
-          <p className="text-[10px] text-muted">
-            {callQuery.data.call.participants.length} participants
-          </p>
-        </div>
-      </div>
-
+    <div className="h-screen bg-bg text-text">
       <CallRoom
         callId={callId}
         participantIds={callQuery.data.call.participants}
         iceServers={iceServers}
         onLeave={() => {
           socket?.emit("call:cancel", { callId });
+          socket?.emit("call:leave", { callId });
           navigate("/app");
         }}
       />
