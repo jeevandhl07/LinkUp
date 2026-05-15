@@ -72,7 +72,7 @@ cloudflared tunnel --url http://localhost:5173
 - Set `CLIENT_ORIGIN` to client tunnel URL
 - Set `VITE_API_URL` and `VITE_SOCKET_URL` to API tunnel URL
 
-Note: For reliable video calls across networks, configure TURN (`TURN_URL`, `TURN_USERNAME`, `TURN_CREDENTIAL`) on server and client env files.
+Note: For reliable video call across networks, configure TURN (`TURN_URL`, `TURN_USERNAME`, `TURN_CREDENTIAL`) on server and client env files.
 
 ## Build
 ```bash
