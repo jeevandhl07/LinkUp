@@ -3,10 +3,9 @@ import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/auth-context";
-import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
-import { LinkUpLogo } from "../components/ui/logo";
+import { AuthShell } from "../components/layout/auth-shell";
 
 export const LoginPage = () => {
   const { login } = useAuth();
@@ -39,10 +38,11 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md p-6 shadow-xl">
-        <LinkUpLogo className="mb-4" />
-        <p className="mb-6 text-sm text-muted">Sign in to your workspace</p>
+    <AuthShell
+      eyebrow="Welcome back"
+      title="Sign in to your workspace"
+      description="Pick up your conversations and calls right where your team left them."
+    >
         <form className="space-y-3" onSubmit={onSubmit}>
           <Input
             value={email}
@@ -87,7 +87,6 @@ export const LoginPage = () => {
             Create account
           </Link>
         </p>
-      </Card>
-    </div>
+    </AuthShell>
   );
 };
